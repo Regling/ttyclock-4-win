@@ -31,3 +31,12 @@ you nead to unblock script (just ones)
 Unblock-File -Path .\ascii-clock-simple.ps1
 ```
 ***
+
+# ⚙️ Parameters :
+
+```
+  -Colour <name> Colour of the digits (example: Cyan, Red, Green)
+  -RefreshRate <sec> Refresh rate in seconds (example: 1)
+  -ShowDate Shows the date above the clock
+  -Use12HourFormat Displays the time in 12-hour format (AM/PM)s://github.com/Regling/ttyclock-4-win/issues/new
+```
