@@ -35,8 +35,11 @@ Unblock-File -Path .\ascii-clock-simple.ps1
 # ⚙️ Parameters :
 
 ```
-  -Colour <name> Colour of the digits (example: Cyan, Red, Green)
-  -RefreshRate <sec> Refresh rate in seconds (example: 1)
-  -ShowDate Shows the date above the clock
-  -Use12HourFormat Displays the time in 12-hour format (AM/PM)s://github.com/Regling/ttyclock-4-win/issues/new
+  -Color              Color of the clock (Cyan, Green, etc.)
+  -RefreshRate        Refresh rate in seconds (default: 1)
+  -ShowDate           Display current date above the clock
+  -Use12HourFormat    Use 12-hour format with AM/PM
+  -MatrixStyle        Use matrix-style ASCII digits
+  -Animated           Enable flicker animation effect
+  -Frame              Draw a box around the clock
 ```
