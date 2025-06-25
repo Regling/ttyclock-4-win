@@ -35,11 +35,11 @@ Unblock-File -Path .\ascii-clock-simple.ps1
 # ⚙️ Parameters :
 
 ```
-  -Color              Color of the clock (Cyan, Green, etc.)
+  -Color              Clock color (Cyan, Green, etc.)
   -RefreshRate        Refresh rate in seconds (default: 1)
-  -ShowDate           Display current date above the clock
+  -ShowDate           Show current date above the clock
   -Use12HourFormat    Use 12-hour format with AM/PM
-  -MatrixStyle        Use matrix-style ASCII digits
-  -Animated           Enable flicker animation effect
+  -Style              Font style: basic, lcd, ascii
+  -Animated           Blink colon every second
   -Frame              Draw a box around the clock
 ```
