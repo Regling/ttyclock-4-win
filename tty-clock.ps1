@@ -1,9 +1,9 @@
 ﻿param (
     [string]$Color = "Cyan",
     [int]$RefreshRate = 1,
+    [string]$Style = "basic",
     [switch]$ShowDate,
     [switch]$Use12HourFormat,
-    [switch]$MatrixStyle,
     [switch]$Animated,
     [switch]$Frame,
     [switch]$Help
@@ -11,87 +11,108 @@
 
 if ($Help) {
     Write-Host @"
-TTy-clock for PowerShell ⏰
+TTY-Clock for PowerShell ⏰
 
 Parameters:
-  -Color              Color of the clock (Cyan, Green, etc.)
+  -Color              Clock color (Cyan, Green, etc.)
   -RefreshRate        Refresh rate in seconds (default: 1)
-  -ShowDate           Display current date above the clock
+  -ShowDate           Show current date above the clock
   -Use12HourFormat    Use 12-hour format with AM/PM
-  -MatrixStyle        Use matrix-style ASCII digits
-  -Animated           Enable flicker animation effect
+  -Style              Font style: basic, lcd, ascii
+  -Animated           Blink colon every second
   -Frame              Draw a box around the clock
-
-Report issues: https://github.com/Regling/ttyclock-4-win/issues/new
 "@
     exit
 }
 
-# ASCII font styles
 $asciiBasic = @{
-    " " = @("   ", "   ", "   ")
-    "0" = @(" _ ", "| |", "|_|")
-    "1" = @("   ", "  |", "  |")
-    "2" = @(" _ ", " _|", "|_ ")
-    "3" = @(" _ ", " _|", " _|")
-    "4" = @("   ", "|_|", "  |")
-    "5" = @(" _ ", "|_ ", " _|")
-    "6" = @(" _ ", "|_ ", "|_|")
-    "7" = @(" _ ", "  |", "  |")
-    "8" = @(" _ ", "|_|", "|_|")
-    "9" = @(" _ ", "|_|", " _|")
-    ":" = @("   ", " o ", " o ")
-    "A" = @(" _ ", "|_|", "| |")
-    "P" = @(" _ ", "|_|", "|  ")
-    "M" = @("|\\/|", "|  |", "|  |")
+    "0"=@(" █████ ","██   ██","██   ██","██   ██"," █████ ")
+    "1"=@("   ██  "," ████  ","   ██  ","   ██  "," █████ ")
+    "2"=@(" █████ ","     ██"," █████ ","██     ","███████")
+    "3"=@(" █████ ","     ██"," █████ ","     ██"," █████ ")
+    "4"=@("██   ██","██   ██","███████","     ██","     ██")
+    "5"=@("███████","██     ","██████ ","     ██","██████ ")
+    "6"=@(" █████ ","██     ","██████ ","██   ██"," █████ ")
+    "7"=@("███████","     ██","    ██ ","   ██  ","  ██   ")
+    "8"=@(" █████ ","██   ██"," █████ ","██   ██"," █████ ")
+    "9"=@(" █████ ","██   ██"," ██████","     ██"," █████ ")
+    ":"=@("       ","   ██  ","       ","   ██  ","       ")
+    "A"=@(" ███ ","█   █","█████","█   █","█   █")
+    "P"=@("████ ","█   █","████ ","█    ","█   ")
+    "M"=@("█   █","██ ██","█ █ █","█   █","█   █")
+    " "=@("       ","       ","       ","       ","       ")
 }
 
-$asciiMatrix = @{
-    " " = @("     ", "     ", "     ")
-    "0" = @(" ███ ", "█   █", " ███ ")
-    "1" = @("  █  ", "  █  ", "  █  ")
-    "2" = @("████ ", "  ██ ", "████ ")
-    "3" = @("████ ", "  ██ ", "████ ")
-    "4" = @("█  █ ", "████ ", "   █ ")
-    "5" = @("████ ", "█    ", "████ ")
-    "6" = @(" ███ ", "█    ", "████ ")
-    "7" = @("████ ", "   █ ", "  █  ")
-    "8" = @(" ███ ", "████ ", " ███ ")
-    "9" = @("████ ", "█  █ ", " ███ ")
-    ":" = @("     ", "  █  ", "  █  ")
-    "A" = @(" ███ ", "█████", "█   █")
-    "P" = @("████ ", "█  █ ", "████ ")
-    "M" = @("█   █", "██ ██", "█   █")
+$asciiLCD = @{
+    "0"=@(" ▄▀▀▀▄ ", "█   █ █", "█   █ █", "█   █ █", " ▀▄▄▄▀ ")
+    "1"=@("   ▄   ", " ▄█   ", "  █   ", "  █   ", "▄███▄ ")
+    "2"=@("▄▀▀▀▄ ", "    █ ", "  ▄▀  ", " █    ", "█████ ")
+    "3"=@("▄▀▀▀▄ ", "    █ ", "  ▄▀  ", "    █ ", "▀▄▄▄▀ ")
+    "4"=@("█   █ ", "█   █ ", "█████ ", "    █ ", "    █ ")
+    "5"=@("█████ ", "█     ", "████  ", "    █ ", "████  ")
+    "6"=@(" ▄▀▀▀ ", "█     ", "████▄ ", "█   █ ", " ▀▀▀  ")
+    "7"=@("█████ ", "    █ ", "   █  ", "  █   ", " █    ")
+    "8"=@(" ▄▀▀▄ ", "█   █ ", " ▀▀▀  ", "█   █ ", " ▀▀▀  ")
+    "9"=@(" ▄▀▀▄ ", "█   █ ", " ▀▀██ ", "    █ ", " ▀▀▀  ")
+    ":"=@("       ", "   ▀   ", "       ", "   ▄   ", "       ")
+    "A"=@(" ▄▀▀▄ ", "█   █ ", "█████ ", "█   █ ", "█   █ ")
+    "P"=@("████▄ ", "█   █ ", "████▀ ", "█     ", "█     ")
+    "M"=@("█▀▄▀█", "█ ▀ █", "█   █", "█   █", "█   █")
+    " "=@("       ", "       ", "       ", "       ", "       ")
 }
 
-if ($MatrixStyle) {
-    $asciiDigits = $asciiMatrix
-} else {
+$asciiLine = @{
+    "0"=@(" /‾‾‾‾\ ","|     |","|     |","|     |"," \_____/")
+    "1"=@("   /|  ","  / |  ","    |  ","    |  ","  __|__")
+    "2"=@(" /‾‾‾‾\ ","     / ","  /‾‾  "," /     "," \_____/")
+    "3"=@(" /‾‾‾‾\ ","     / ","  ‾‾‾\ ","     \ "," \____/ ")
+    "4"=@("|    | ","|    | "," \____| ","     | ","     | ")
+    "5"=@("|‾‾‾‾‾ ","|      "," \‾‾‾\ ","     | "," \____/ ")
+    "6"=@(" /‾‾‾  ","|      ","|‾‾‾\ ","|    | "," \____/ ")
+    "7"=@("‾‾‾‾‾| ","    /  ","   /   ","  /    "," /     ")
+    "8"=@(" /‾‾‾\ ","|   | "," \‾‾‾/ ","|   | "," \___/ ")
+    "9"=@(" /‾‾‾\ ","|   | "," \‾‾‾| ","     | "," \___/ ")
+    ":"=@("       ","   ░   ","       ","   ░   ","       ")
+    "A"=@("  /‾\  "," /   \ ","|‾‾‾‾|","|     |","|     |")
+    "P"=@("|‾‾‾\ ","|    |","|‾‾‾/ ","|     ","|     ")
+    "M"=@("|\   /|","| \_/ |","|     |","|     |","|     |")
+    " "=@("       ","       ","       ","       ","       ")
+}
+
+$asciiStyles = @{
+    "basic" = $asciiBasic
+    "lcd"   = $asciiLCD
+    "ascii" = $asciiLine
+}
+
+if (-not $asciiStyles.ContainsKey($Style.ToLower())) {
+    Write-Host "⚠️ Стиль '$Style' не знайдено. Використовується 'basic'." -ForegroundColor Yellow
     $asciiDigits = $asciiBasic
+} else {
+    $asciiDigits = $asciiStyles[$Style.ToLower()]
 }
 
 $blink = $true
 
 function Get-ClockLines($now) {
-    if ($Use12HourFormat) {
-        $timeStr = $now.ToString("hh:mm:ss tt")
+    $timeStr = if ($Use12HourFormat) {
+        $now.ToString("hh:mm:ss tt")
     } else {
-        $timeStr = $now.ToString("HH:mm:ss")
+        $now.ToString("HH:mm:ss")
     }
 
-    $lines = @("", "", "")
+    $lines = @("", "", "", "", "")
     foreach ($char in $timeStr.ToCharArray()) {
-        $c = "$char"
-        if ($c -eq ":" -and $Animated -and -not $blink) {
-            $c = " "
+        $c = if ($char -eq ":" -and $Animated -and -not $blink) { " " } else { "$char" }
+        if (-not $asciiDigits.ContainsKey($c)) {
+            Write-Host "⚠️ The '$c' character is not supported for the style '$Style'." -ForegroundColor DarkYellow
+            continue
         }
-        if ($asciiDigits.ContainsKey($c)) {
-            for ($i = 0; $i -lt 3; $i++) {
-                $lines[$i] += "  " + $asciiDigits[$c][$i]
-            }
+        for ($i = 0; $i -lt 5; $i++) {
+            $lines[$i] += "  " + $asciiDigits[$c][$i]
         }
     }
-    return ,$lines
+    return $lines
 }
 
 function Show-Clock {
@@ -100,6 +121,13 @@ function Show-Clock {
         $now = Get-Date
         $lines = Get-ClockLines $now
         $width = $Host.UI.RawUI.WindowSize.Width
+        if ($width -lt 95) {
+            Write-Host "`n❗ The PowerShell window is too narrow for a watch" -ForegroundColor Red
+            Start-Sleep -Seconds 2
+        }
+
+        Clear-Host
+        $now = Get-Date
         $pad = [Math]::Floor(($width - $lines[0].Length) / 2)
 
         if ($ShowDate) {
@@ -109,7 +137,7 @@ function Show-Clock {
         }
 
         if ($Frame) {
-            $border = "+" + ("-" * ($lines[0].Length + 2)) + "+"
+            $border = "+" + ("-" * ($lines[0].Length + 8)) + "+"
             Write-Host (" " * ($pad - 1)) + $border
             foreach ($line in $lines) {
                 Write-Host (" " * ($pad - 1)) + "| " + $line + " |" -ForegroundColor $Color
