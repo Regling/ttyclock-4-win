@@ -28,7 +28,7 @@ git clone https://github.com/Regling/ttyclock-4-win.git
 you nead to unblock script (just ones)
 
 ```
-Unblock-File -Path .\ascii-clock-simple.ps1
+Unblock-File -Path .\tty-clock.ps1
 ```
 ***
 
